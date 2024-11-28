@@ -1,8 +1,8 @@
 const map = L.map("map").setView([104.0354718802255, 1.1291339818308566], 12); // Default to Jakarta
 let userLocationMarker, destinationMarker, routeLayer, distanceLabel;
-let userLocation;
+let userLocation, restos = [];
 
-// Create a custom icon
+// Create a custom icon for user location
 const userLocationIcon = L.icon({
   iconUrl: "./assets/person.png", // URL to the custom image or SVG
   iconSize: [30, 30], // Size of the icon [width, height]
@@ -10,6 +10,7 @@ const userLocationIcon = L.icon({
   popupAnchor: [0, -30], // Point from which the popup should open relative to the iconAnchor
 });
 
+// Create a custom icon for destination location
 const destinationLocationIcon = L.icon({
   iconUrl: "./assets/location-pin.png", // URL to the custom image or SVG
   iconSize: [30, 30], // Size of the icon [width, height]
@@ -23,7 +24,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
-// Function to get user's current location
+// Function to get the user's current location
 function getUserLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -42,9 +43,7 @@ function getUserLocation() {
       },
       (error) => {
         console.error("Error getting user location:", error);
-        alert(
-          "Unable to retrieve your location. Please allow location access."
-        );
+        alert("Unable to retrieve your location. Please allow location access.");
       }
     );
   } else {
@@ -55,7 +54,7 @@ function getUserLocation() {
 // Call function to get user's location
 getUserLocation();
 
-// Function to calculate and display route
+// Function to calculate and display the route
 async function calculateRoute(destinationLatLng, profile) {
   if (!userLocation) {
     alert("User location not set. Please try again.");
@@ -140,62 +139,81 @@ async function calculateRoute(destinationLatLng, profile) {
   }
 }
 
+// Function to load and display restaurant options based on the selected region
+async function loadRestos(wilayah) {
+  try {
+    const response = await fetch(`getRestos.php?wilayah=${encodeURIComponent(wilayah)}`);
+    restos = await response.json();
+    const restoSelect = document.getElementById("restoSelect");
+    restoSelect.innerHTML = '<option value="">Select a restaurant</option>'; // Clear existing options
+
+    restos.forEach((resto) => {
+      const option = document.createElement("option");
+      option.value = resto.nama_resto;
+      option.textContent = resto.nama_resto;
+      restoSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Error fetching restos:", error);
+    alert("An error occurred while loading the restaurant options.");
+  }
+}
+
+// Event listener for wilayah change
+document.getElementById("wilayahSelect").addEventListener("change", async (event) => {
+  const wilayah = event.target.value;
+  if (wilayah) {
+    loadRestos(wilayah);
+  } else {
+    document.getElementById("restoSelect").innerHTML = '<option value="">Select a restaurant</option>';
+  }
+});
+
 // Event listener for "Get Directions" button
-document
-  .getElementById("getDirectionsButton")
-  .addEventListener("click", async () => {
-    const destination = document.getElementById("destinationInput").value;
+document.getElementById("getDirectionsButton").addEventListener("click", async () => {
+  const resto = document.getElementById("restoSelect").value;
+  const wilayah = document.getElementById("wilayahSelect").value;
 
-    if (!destination) {
-      alert("Please enter a destination.");
-      return;
+  if (!resto || !wilayah) {
+    alert("Please select both a wilayah and a restaurant.");
+    return;
+  }
+
+  const profile = document.getElementById("profileSelect").value;
+
+  console.log(`Selected travel mode: ${profile}`);
+  console.log(`Selected wilayah: ${wilayah}`);
+  console.log(`Selected restaurant: ${resto}`);
+
+  // Cek jika restoran ada di pilihan dan dapatkan latitude & longitude dari data
+  const selectedResto = restos.find((r) => r.nama_resto === resto);
+
+  if (selectedResto) {
+    const destinationLatLng = {
+      lat: parseFloat(selectedResto.latitude),
+      lng: parseFloat(selectedResto.longitude),
+    };
+
+    // Set destination marker
+    if (destinationMarker) {
+      map.removeLayer(destinationMarker);
     }
+    destinationMarker = L.marker(destinationLatLng, {
+      icon: destinationLocationIcon,
+    })
+      .addTo(map)
+      .bindPopup(`Destination: ${resto}`)
+      .openPopup();
 
-    const profile = document.getElementById("profileSelect").value;
+    // Calculate and display route with the selected travel mode
+    calculateRoute(destinationLatLng, profile);
+  } else {
+    alert("Destination not found. Please enter a valid restaurant.");
+  }
 
-    // Log the selected travel mode to confirm selection
-    console.log(`Selected travel mode: ${profile}`);
+  
 
-    // Using a basic geocoding API to get the destination's coordinates (You can use services like OpenCage, Mapbox, or Nominatim)
-    const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      destination
-    )}&format=json&limit=1`;
-
-    try {
-      const response = await fetch(geocodeUrl);
-      const results = await response.json();
-
-      if (results && results.length > 0) {
-        const destinationLatLng = {
-          lat: parseFloat(results[0].lat),
-          lng: parseFloat(results[0].lon),
-        };
-
-        // Set destination marker
-        if (destinationMarker) {
-          map.removeLayer(destinationMarker);
-        }
-        destinationMarker = L.marker(destinationLatLng, {
-          icon: destinationLocationIcon,
-        })
-          .addTo(map)
-          .bindPopup(`Destination: ${destination}`)
-          .openPopup();
-
-        // Calculate and display route with the selected travel mode
-        calculateRoute(destinationLatLng, profile);
-      } else {
-        alert(
-          "Destination not found. Please enter a valid address or place name."
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching geocode data:", error);
-      alert("An error occurred while fetching the destination location.");
-    }
-  });
-
-// Event listener for style change
+});
 document.getElementById("styleSelect").addEventListener("change", (event) => {
   const selectedStyle = event.target.value;
   switch (selectedStyle) {
@@ -237,3 +255,29 @@ document.getElementById("styleSelect").addEventListener("change", (event) => {
       break;
   }
 });
+
+// Function to display restaurant details
+async function displayRestoDetails(namaResto) {
+  try {
+    // Fetch details for the selected restaurant
+    const response = await fetch(`getRestoDetails.php?nama_resto=${encodeURIComponent(namaResto)}`);
+    const data = await response.json();
+
+    if (data) {
+      // Construct the image path
+      const imagePath = `/assets/img/datagambar/${data.gambar}`;
+
+      // Display restaurant details
+      document.getElementById("restoImage").src = imagePath || "./assets/default-image.png"; // Use constructed path
+      document.getElementById("restoName").textContent = data.nama_resto || "N/A";
+      document.getElementById("restoHours").textContent = data.jam_buka || "N/A";
+      document.getElementById("restoCuisine").textContent = data.jenis_makanan || "N/A";
+    } else {
+      alert("Restaurant details not found.");
+    }
+  } catch (error) {
+    console.error("Error fetching restaurant details:", error);
+    alert("An error occurred while fetching restaurant details.");
+  }
+}
+

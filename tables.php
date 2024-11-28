@@ -79,7 +79,7 @@ $restaurants = getRestaurantData();
                     </div>
                     <div class="card-body container-flex">
                         <!-- Add Button -->
-                        <button class ="btn btn-primary go-right" type="button" data-bs-toggle="modal" data-bs-target="#addModal">Add Restaurant</button>
+                        <button class ="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addModal">Add Restaurant</button>
             
 
             <table id="datatablesSimple">

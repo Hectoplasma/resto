@@ -69,18 +69,7 @@ function getRestaurantData() {
 
     return $restaurants;
 }
-/* 
-id_resto
-nama_resto
-jenis_resto
-jenis_makanan
-jam_buka
-jam_tutup
-lokasi
-foto
-latitude
-longitude
-*/
+
 // Add a new restaurant
 function addRestaurant($id_resto, $nama_resto, $jenis_resto, $jenis_makanan, $jam_buka, $jam_tutup, $lokasi, $foto, $latitude, $longitude) {
     $conn = connectDB();

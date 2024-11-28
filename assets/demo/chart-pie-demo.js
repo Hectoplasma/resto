@@ -9,7 +9,7 @@ var myPieChart = new Chart(ctx, {
   data: {
     labels: ["Sekupang", "Bengkong"],
     datasets: [{
-      data: [20, 15],
+      data: [18, 7],
       backgroundColor: ['#22242A','#626064'],
     }],
   },
