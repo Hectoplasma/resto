@@ -20,6 +20,10 @@ $wilayahResult = $conn->query($wilayahQuery);
 $restoQuery = "SELECT nama_resto, latitude, longitude FROM tbl_resto"; // Memperoleh latitude dan longitude
 $restoResult = $conn->query($restoQuery);
 
+// Ambil data foto
+$fotoQuery = "SELECT DISTINCT foto FROM tbl_resto";
+$fotoResult = $conn->query($fotoQuery);
+
 // Convert ke format JSON untuk wilayah
 $wilayahData = [];
 if ($wilayahResult->num_rows > 0) {
@@ -89,13 +93,11 @@ $conn->close();
       Get Directions
     </button>
     <div>
-  <img id="restoImage" src="./assets/default-image.png" alt="Restaurant Image" class="w-32 h-32 object-cover" />
+  <img id="restoImage" src="./assets/img/datagambar/0.jpg" alt="Restaurant Image" class="w-32 h-32 object-cover" />
   <p><strong>Nama Rumah Makan:</strong> <span id="restoName">N/A</span></p>
   <p><strong>Jam Buka:</strong> <span id="restoHours">N/A</span></p>
   <p><strong>Jenis Makanan:</strong> <span id="restoCuisine">N/A</span></p>
 </div>
-
-
 
   </div>
 
@@ -138,7 +140,7 @@ async function displayRestoDetails(namaResto) {
 
     if (data) {
       // Display restaurant details
-      document.getElementById("restoImage").src = data.foto || "./assets/default-image.png";
+      document.getElementById("restoImage").src = `./assets/img/datagambar/${data.foto}` || "./assets/img/datagambar/0.jpg";
       document.getElementById("restoName").textContent = data.nama_resto || "N/A";
       document.getElementById("restoHours").textContent = data.jam_buka || "N/A";
       document.getElementById("restoCuisine").textContent = data.jenis_makanan || "N/A";
@@ -159,34 +161,16 @@ document.getElementById("restoSelect").addEventListener("change", (event) => {
   }
 })
 
-// Function to display restaurant details
-async function displayRestoDetails(namaResto) {
-  try {
-    // Fetch details for the selected restaurant
-    const response = await fetch(`getRestoDetails.php?nama_resto=${encodeURIComponent(namaResto)}`);
-    const data = await response.json();
-
-    if (data) {
-      // Construct the image path
-      const imagePath = `/assets/img/datagambar/${data.foto}`;
-
-      // Display restaurant details
-      document.getElementById("restoImage").src = imagePath || "./assets/default-image.png"; // Use constructed path
-      document.getElementById("restoName").textContent = data.nama_resto || "N/A";
-      document.getElementById("restoHours").textContent = data.jam_buka || "N/A";
-      document.getElementById("restoCuisine").textContent = data.jenis_makanan || "N/A";
-    } else {
-      alert("Restaurant details not found.");
-    }
-  } catch (error) {
-    console.error("Error fetching restaurant details:", error);
-    alert("An error occurred while fetching restaurant details.");
-  }
-}
-
-
     });
   </script>
+
+  <!-- Icon Login di Sudut Kiri Bawah -->
+  <a href="login.php" id="loginIcon" class="absolute bottom-4 left-4 z-20 p-3 bg-blue-500 rounded-full shadow-lg">
+    <img src="./assets/img/datagambar/login.png" alt="Login" class="w-8 h-8">
+  </a>
+
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
 </body>
 <footer>
   <a href="https://www.flaticon.com/free-icons/person" title="person icons">

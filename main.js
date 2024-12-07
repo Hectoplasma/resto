@@ -268,7 +268,7 @@ async function displayRestoDetails(namaResto) {
       const imagePath = `/assets/img/datagambar/${data.foto}`;
 
       // Display restaurant details
-      document.getElementById("restoImage").src = imagePath || "./assets/default-image.png"; // Use constructed path
+      document.getElementById("restoImage").src = imagePath || "./assets/img/datagambar/defaultimage.jpg"; // Use constructed path
       document.getElementById("restoName").textContent = data.nama_resto || "N/A";
       document.getElementById("restoHours").textContent = data.jam_buka || "N/A";
       document.getElementById("restoCuisine").textContent = data.jenis_makanan || "N/A";
