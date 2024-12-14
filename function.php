@@ -86,15 +86,30 @@ function addRestaurant($id_resto, $nama_resto, $jenis_resto, $jenis_makanan, $ja
 // Edit a restaurant's details
 function editRestaurant($id_resto, $nama_resto, $jenis_resto, $jenis_makanan, $jam_buka, $jam_tutup, $lokasi, $foto, $latitude, $longitude) {
     $conn = connectDB();
-    $query = "UPDATE tbl_resto SET nama_resto='$nama_resto', jenis_resto='$jenis_resto', jenis_makanan='$jenis_makanan', jam_buka='$jam_buka', 
-              jam_tutup='$jam_tutup', lokasi='$lokasi', foto='$foto', latitude='$latitude', longitude='$longitude' WHERE id_resto='$id_resto'";
+
+    // Check if the photo filename is not empty, implying a new file was uploaded
+    if ($foto) {
+        // If a new file has been uploaded, update the photo filename
+        $query = "UPDATE tbl_resto SET nama_resto='$nama_resto', jenis_resto='$jenis_resto', jenis_makanan='$jenis_makanan', 
+                  jam_buka='$jam_buka', jam_tutup='$jam_tutup', lokasi='$lokasi', foto='$foto', latitude='$latitude', longitude='$longitude' 
+                  WHERE id_resto='$id_resto'";
+    } else {
+        // No new photo uploaded, so keep the old photo filename
+        $query = "UPDATE tbl_resto SET nama_resto='$nama_resto', jenis_resto='$jenis_resto', jenis_makanan='$jenis_makanan', 
+                  jam_buka='$jam_buka', jam_tutup='$jam_tutup', lokasi='$lokasi', latitude='$latitude', longitude='$longitude' 
+                  WHERE id_resto='$id_resto'";
+    }
+
     if (mysqli_query($conn, $query)) {
         return true;
     } else {
         return false;
     }
+
     mysqli_close($conn);
 }
+
+
 
 
 // Delete a restaurant
